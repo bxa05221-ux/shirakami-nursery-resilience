@@ -1,0 +1,60 @@
+id: manga_manual
+name: 保育レジリエンス 漫画マニュアル
+version: 0.1
+status: draft
+purpose:
+  - 現場導入時の心理的抵抗を下げる
+  - Landscape First の考え方を短時間で共有する
+  - AIが保育を決定しないことを明示する
+  - 観察から翌日の保育までの循環を物語として理解できるようにする
+
+principles:
+  human_decision:
+    required: true
+  child_dignity:
+    required: true
+  no_diagnosis_by_ai:
+    required: true
+  no_automatic_safety_decision:
+    required: true
+  no_blame:
+    required: true
+  observation_before_interpretation:
+    required: true
+
+story_flow:
+  - scene: current_practice
+    focus: 一斉指示と現場の違和感
+  - scene: observation
+    focus: 子どもの姿を具体的に観測する
+  - scene: individual_landscape
+    focus: 発達・興味・関係・環境をつなぐ
+  - scene: group_landscape
+    focus: 個別方針を束ねる
+  - scene: planning
+    focus: AI案を保育者が修正する
+  - scene: practice
+    focus: 翌日の環境・援助・配置を変える
+  - scene: outcome
+    focus: 子どもと保育者の変化を観測する
+  - scene: external_landscape
+    focus: 天候・防災・害獣等を判断材料として重ねる
+  - scene: internal_reporting
+    focus: 匿名Signalと通報者保護
+  - scene: third_party_evaluation
+    focus: Evidenceを逆方向から読み改善へ戻す
+
+presenter:
+  role: 景色の整理と問い返し
+  prohibited:
+    - diagnosis
+    - unilateral_instruction
+    - final_childcare_decision
+    - reporter_identification
+    - automatic_activity_cancellation
+
+outputs:
+  - manga_manual
+  - onboarding_storyboard
+  - staff_training_material
+  - quick_reference
