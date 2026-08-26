@@ -1,0 +1,43 @@
+protocol:
+  id: external-landscape
+  version: "0.1"
+  purpose: "園外の環境変化を保育Landscapeへ接続する"
+
+sources:
+  weather:
+    preferred: official_public_sources
+    examples:
+      - Japan Meteorological Agency
+  disaster:
+    preferred: official_local_or_prefectural_sources
+  wildlife:
+    preferred: official_prefectural_or_municipal_sources
+  local:
+    preferred: official_municipal_sources
+
+signal:
+  fields:
+    - source
+    - observed_at
+    - published_at
+    - area
+    - event_type
+    - severity
+    - source_url
+    - raw_summary
+    - confidence
+
+rules:
+  - external_information_is_evidence_not_decision
+  - preserve_source_and_timestamp
+  - show_relevance_to_planned_activity
+  - require_human_confirmation_for_action
+
+examples:
+  - weather
+  - heavy_rain_warning
+  - heat_risk
+  - thunderstorm_risk
+  - bear_sighting
+  - wild_boar_sighting
+  - road_or_local_event
