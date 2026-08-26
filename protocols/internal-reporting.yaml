@@ -1,0 +1,33 @@
+protocol:
+  id: internal-reporting
+  version: "0.1"
+  purpose: "匿名または仮名のSignalを、通報者保護と組織改善のために扱う"
+
+principles:
+  - protect_reporter
+  - separate_identity_from_content
+  - preserve_original_signal
+  - restrict_access
+  - prohibit_retaliation
+  - human_review_required
+
+flow:
+  - receive
+  - assign_report_id
+  - separate_identity
+  - normalize_content
+  - review
+  - determine_response
+  - record_action
+  - propose_prevention
+  - feed_back_to_landscape
+
+privacy:
+  identity_visibility: restricted
+  ordinary_childcare_views: prohibited
+  public_repository_data: prohibited
+  audit_log: required
+
+caution:
+  - anonymity is not absolute if operational systems retain identifying metadata
+  - legal_and_regulatory_requirements_must_be_checked_per_deployment
