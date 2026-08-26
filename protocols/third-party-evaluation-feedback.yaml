@@ -1,0 +1,32 @@
+protocol:
+  id: third-party-evaluation-feedback
+  version: "0.1"
+  purpose: "第三者評価をEvidenceから組織改善へ逆流させる"
+
+flow:
+  forward:
+    - individual_practice
+    - group_landscape
+    - organization_landscape
+    - evidence
+    - evaluation
+  reverse:
+    - evaluation_findings
+    - improvement_proposal
+    - organization_landscape_update
+    - practice_change
+    - new_evidence
+    - reevaluation
+
+principles:
+  - evaluation_is_not_the_endpoint
+  - evidence_is_traceable
+  - findings_require_human_interpretation
+  - improvement_is_observable
+  - preserve_evaluation_history
+
+access:
+  evaluator: scoped_evidence
+  management: organization_scope
+  childcare_staff: need_to_know
+  child_or_family_identifying_data: restricted
