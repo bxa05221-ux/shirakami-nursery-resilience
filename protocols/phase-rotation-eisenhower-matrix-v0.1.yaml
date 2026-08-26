@@ -1,0 +1,102 @@
+schema: shirakami-nursery-resilience/protocol
+id: phase-rotation-eisenhower-matrix
+version: 0.1.0
+status: experimental
+language: ja
+
+name: 3D位相回転アイゼンハワーマトリクス
+purpose: >-
+  保育Landscape上の事象を、優先順位だけでなく、時間・対象・判断の位相を
+  回転させて観測し、次に見るべき景色と次の一手を整理する。
+
+principle:
+  - "重要/緊急の二軸だけで結論を出さない。"
+  - "同一事象を複数の位相から再観測する。"
+  - "AIは判断を代行せず、位相の切替と問い返しを支援する。"
+  - "最終判断は保育者・管理者など権限を持つ人間が行う。"
+
+axes:
+  time:
+    description: 時間の位相
+    states: [past, present, next]
+    labels: [過去, 現在, 明日]
+  scope:
+    description: 観測対象の位相
+    states: [child, group, organization, external]
+    labels: [子ども, 集団, 園, 園外]
+  decision:
+    description: 実践循環の位相
+    states: [observation, planning, practice, review, improvement]
+    labels: [観察, 計画, 実践, 評価, 改善]
+
+matrix:
+  base:
+    axes: [importance, urgency]
+    values: [low, high]
+    note: "従来のアイゼンハワー型の優先度整理は補助軸として使用する。"
+  rotation_rule:
+    description: >-
+      重要度・緊急度で固定せず、time × scope × decision を順に回転させる。
+    sequence:
+      - "現在の事象を観察する"
+      - "子どもから集団へ視野を広げる"
+      - "園の環境・人員・運用へ広げる"
+      - "必要に応じて園外Landscapeを確認する"
+      - "過去のEvidenceと照合する"
+      - "明日の一手を小さく計画する"
+      - "実践後に評価し、Landscapeへ戻す"
+
+workflow:
+  - id: observe
+    action: 事象をSignal/Evidenceとして記録
+  - id: rotate_time
+    action: 過去・現在・明日の位相から再観測
+  - id: rotate_scope
+    action: 子ども・集団・園・園外の位相から再観測
+  - id: rotate_decision
+    action: 観察・計画・実践・評価・改善の位相から再観測
+  - id: compare
+    action: 既存の保育計画、安全記録、発達観測、外部情報等と照合
+  - id: present
+    action: スレゼンターが複数の見え方と問いを提示
+  - id: decide
+    action: 保育者・管理者が次の一手を決定
+  - id: feedback
+    action: 結果をEvidenceとして次のLandscapeへ還流
+
+presenter:
+  role: 位相回転のナビゲーター
+  must:
+    - "事実と推測を分ける"
+    - "一つの原因に早期固定しない"
+    - "少なくとも別の観測位相を一つ提示する"
+    - "次の小さな観測または実践を提案する"
+  must_not:
+    - "診断を行う"
+    - "保育者の専門判断を置き換える"
+    - "重要度や緊急度だけで自動決定する"
+
+outputs:
+  - landscape_view
+  - rotated_perspectives
+  - priority_candidates
+  - next_observation_question
+  - next_day_plan_candidate
+  - evidence_linkage
+
+safety:
+  privacy: "個人情報・発達情報・内部通報等は権限に応じて分離表示する。"
+  high_risk: "事故・虐待・医療・安全等の重大事項は既定の報告・対応手順を優先する。"
+
+integration:
+  supports:
+    - individual_landscape
+    - group_landscape
+    - organization_landscape
+    - external_landscape
+    - childcare_plan
+    - safety
+    - staffing
+    - internal_reporting
+    - third_party_evaluation
+  feedback_direction: "内側→外側の集約と、外側→内側の評価・改善提案を双方向に接続する。"
