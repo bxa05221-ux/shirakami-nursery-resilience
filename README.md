@@ -2,46 +2,106 @@
 
 ## 保育レジリエンス α1.0
 
-保育をAIに決めさせるためのシステムではない。
+子ども一人ひとりのLandscapeを観測し、個別の保育を束ね、集団・園全体の保育へ還流させるための実証リポジトリ。
 
-子ども一人ひとりの観察、発達、関係、環境、保育者の判断、安全、地域情報をLandscapeとして蓄積し、個別の保育を束ねて集団・園全体の保育へ還流させるためのReference Implementationである。
+本リポジトリは、Shirakami OSを保育領域へ適用するReference Implementationとして位置づける。
 
-## Core principle
+## 基本思想
 
-> 個々の子どもを全体に合わせるのではなく、個々の子どもの姿から全体保育を組み立てる。
+> **子どもを全体に合わせるのではなく、個々の子どもの姿から全体保育を組み立てる。**
 
-## α1.0 scope
+AIは保育を決めない。
+AIは、保育者が子どもを見るための景色（Landscape）を整理し、次に見るべき景色を提示する。
 
-- 個別Landscape
-- 発達観測と個別保育計画
-- 集団Landscape / 園Landscape
-- 翌日の保育計画への還流
-- 日誌・ヒヤリハット・事故報告・会議録等の記録支援
-- 人員配置・保育負荷の観測支援
-- External Landscape（天候、防災、害獣等）
-- 匿名内部通報 / 組織改善Signal
-- Evidenceの蓄積
-- 第三者評価への逆流・改善ループ
+## 保育の循環
 
-## Design boundary
+```text
+観察
+  ↓
+個別Landscape
+  ↓
+個別保育計画
+  ↓
+実践
+  ↓
+評価・Evidence
+  ↓
+集団Landscape
+  ↓
+園Landscape
+  ↓
+翌日の保育
+  ↓
+再観測
+```
 
-AIは診断・処遇・配置・安全判断・評価結果を自律決定しない。
-AIは観測された情報を整理し、関係を提示し、計画案や問いを生成する。最終判断は園・専門職・管理者が行う。
+## 3D位相回転アイゼンハワーマトリクス
 
-## Domain-independent direction
+保育の優先順位を「重要度 × 緊急度」だけで固定しない。
 
-本リポジトリは保育を最初のReference Implementationとするが、Core概念は将来の学校、就労支援、高齢者支援、医療等への展開を想定する。
+同一事象を、
 
-共通概念：Person / Group / Environment / Observation / Evidence / Plan / Event / Signal / Decision / Outcome / Permission / Audit
+- **時間**：過去・現在・明日
+- **対象**：子ども・集団・園・園外
+- **判断循環**：観察・計画・実践・評価・改善
 
-## Third-party evaluation loop
+の3軸で回転させて観測する。
 
-`個別保育 → 集団Landscape → 園Landscape → Evidence → 評価 → 改善提案 → 園Landscape → 実践`
+この仕組みにより、例えば「一斉指示に参加しにくい」という事象を、子どもの特性だけでなく、集団、環境、保育者の関わり、人員配置、園の保育文化、家庭・地域・外部環境まで含めて再観測できる。
 
-第三者評価を記録提出の終点ではなく、組織学習と保育改善へ戻る逆流ループとして扱う。
+詳細：[`docs/3d-phase-rotation-eisenhower-matrix.md`](docs/3d-phase-rotation-eisenhower-matrix.md)
 
-## Status
+プロトコル：[`protocols/phase-rotation-eisenhower-matrix-v0.1.yaml`](protocols/phase-rotation-eisenhower-matrix-v0.1.yaml)
 
-α1.0 — pilot design / reference implementation
+## 主要領域
 
-This repository intentionally excludes any identifiable child, family, staff, or facility operational data.
+- 個別Landscape / 発達観測
+- 個別・集団・園全体の保育計画
+- 保育中のチェックポイント
+- ヒヤリハット・インシデント
+- 人員配置と保育負荷
+- External Landscape（天候、防災、害獣、地域情報等）
+- 匿名内部通報
+- スレゼンターによる問い返し
+- 日誌・会議録・マニュアル更新等の記録支援
+- 第三者評価と改善の逆流ループ
+
+## 第三者評価
+
+日々の保育で蓄積したEvidenceを、第三者評価の基礎資料として扱う。
+
+```text
+園Landscape
+   ↓
+Evidence
+   ↓
+第三者評価
+   ↓
+評価・提案
+   ↓
+園Landscapeへ逆流
+   ↓
+改善計画
+   ↓
+実践
+```
+
+評価はゴールではなく、次の保育をつくるためのフィードバックとして扱う。
+
+## ドメイン横展開
+
+保育で検証する一方、Coreとなる概念は人間支援領域へ展開可能な形を維持する。
+
+```text
+Shirakami OS Core
+       ↓
+Human Support Runtime
+       ↓
+保育 / 学校 / 就労支援 / 高齢者支援 / 医療 等
+```
+
+ドメイン固有の専門判断は各領域に保持し、共通Runtimeと混同しない。
+
+## 注意
+
+本リポジトリは専門職の判断を置き換えるものではない。発達・医療・安全・虐待・事故等の高リスク領域では、各制度・専門職・園の規程・法令等を優先する。
