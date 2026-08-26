@@ -1,0 +1,68 @@
+protocol:
+  id: childcare-resilience-alpha1
+  version: "1.0"
+  status: pilot
+  title: 保育レジリエンス α1.0
+  principle: "個別の保育を束ね、集団・園全体のLandscapeへ還流させる"
+
+runtime:
+  cycle:
+    - observe
+    - contextualize
+    - plan_individually
+    - practice
+    - record
+    - aggregate
+    - review
+    - plan_next_day
+  human_authority: required
+  ai_role:
+    - organize_observations
+    - surface_relations
+    - draft_plans
+    - generate_questions
+    - summarize_evidence
+  ai_prohibitions:
+    - autonomous_diagnosis
+    - autonomous_safety_decision
+    - autonomous_staffing_decision
+    - autonomous_childcare_decision
+
+landscape:
+  layers:
+    - child
+    - group
+    - organization
+    - external
+  signals:
+    - observation
+    - safety
+    - incident
+    - near_miss
+    - internal_report
+    - external_information
+  evidence_policy:
+    preserve_original: true
+    rewrite_original: false
+
+outputs:
+  - individual_childcare_plan
+  - next_day_childcare_plan
+  - daily_record
+  - near_miss_record
+  - incident_report_draft
+  - meeting_record_draft
+  - manual_update_proposal
+  - staffing_support_view
+  - third_party_evaluation_evidence_view
+
+feedback:
+  third_party_evaluation:
+    enabled: true
+    direction: reverse_flow
+    flow: "evaluation -> improvement -> practice -> evidence -> reevaluation"
+
+privacy:
+  identifiable_child_data_in_repository: false
+  identifiable_staff_data_in_repository: false
+  identifiable_family_data_in_repository: false
