@@ -1,0 +1,23 @@
+name: Alpha 1.0 Smoke Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile reference runtime
+        run: python -m compileall runtime/reference
+      - name: Verify protocol files
+        run: |
+          test -f spec/identity-vault.yaml
+          test -f spec/presence-time-landscape.yaml
+          test -f spec/time-window-forecast.yaml
+          test -f spec/alpha1.0-complete-loop.yaml
