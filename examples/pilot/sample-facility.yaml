@@ -1,0 +1,54 @@
+version: 0.1.0-alpha1
+title: Synthetic Pilot Facility Dataset
+notice: This dataset is entirely fictional and contains no real child, staff, or facility identity.
+facility:
+  facility_id: FACILITY-DEMO-001
+  facility_name: Demo Nursery
+  max_classes: 6
+  children:
+    - child_id: CHILD-DEMO-001
+      class_id: CLASS-A
+      pseudonym: A-01
+      scheduled_arrival: '2026-08-27T08:30:00+09:00'
+      scheduled_departure: '2026-08-27T16:30:00+09:00'
+      status: scheduled
+    - child_id: CHILD-DEMO-002
+      class_id: CLASS-A
+      pseudonym: A-02
+      scheduled_arrival: '2026-08-27T09:00:00+09:00'
+      scheduled_departure: '2026-08-27T17:00:00+09:00'
+      status: scheduled
+    - child_id: CHILD-DEMO-003
+      class_id: CLASS-B
+      pseudonym: B-01
+      scheduled_arrival: '2026-08-27T08:00:00+09:00'
+      scheduled_departure: '2026-08-27T18:00:00+09:00'
+      status: scheduled
+  staff:
+    - staff_id: STAFF-DEMO-001
+      scheduled_start: '2026-08-27T08:00:00+09:00'
+      scheduled_end: '2026-08-27T17:00:00+09:00'
+      break_minutes: 60
+      assigned_class_ids: [CLASS-A]
+    - staff_id: STAFF-DEMO-002
+      scheduled_start: '2026-08-27T09:00:00+09:00'
+      scheduled_end: '2026-08-27T18:00:00+09:00'
+      break_minutes: 60
+      assigned_class_ids: [CLASS-B]
+  external_events:
+    - start: '2026-08-27T10:00:00+09:00'
+      end: '2026-08-27T12:00:00+09:00'
+      phenomenon: precipitation_risk_increasing
+      probability_or_confidence: 0.7
+      source: synthetic-demo
+      impact_candidates: [outdoor_activity]
+      recommended_review: '戸外活動の実施時刻と室内代替案を確認'
+  planned_activities:
+    - class_id: CLASS-A
+      start: '2026-08-27T10:00:00+09:00'
+      end: '2026-08-27T11:00:00+09:00'
+      activity: outdoor_play
+    - class_id: CLASS-B
+      start: '2026-08-27T10:30:00+09:00'
+      end: '2026-08-27T11:30:00+09:00'
+      activity: outdoor_walk
