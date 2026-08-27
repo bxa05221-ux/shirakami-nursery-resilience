@@ -1,0 +1,175 @@
+schema: shirakami-nursery-resilience
+version: "0.1"
+status: draft
+
+capacity:
+  classes_max: 6
+  children_per_class_max: 20
+  children_total_max: 120
+  note: "『個別』は各クラスの個別保育計画対象児。20人を上限とし、6クラスまでを基本運用単位とする。"
+
+principles:
+  - individual_landscape_is_primary
+  - individual_plans_are_aggregated_into_group_landscape
+  - group_landscapes_are_aggregated_into_organization_landscape
+  - external_landscape_is_context_not_decision
+  - human_approval_required_for_plans_and_safety_decisions
+  - evidence_is_preserved
+  - third_party_evaluation_can_flow_back_into_improvement
+
+outputs:
+  daily_landscape:
+    required:
+      - date
+      - class
+      - weather_external_landscape
+      - safety_alerts
+      - notable_observations
+      - staffing_status
+      - risk_points
+      - presenter_questions
+
+  individual_child_plan:
+    required:
+      - child_id
+      - age_months
+      - development_observation
+      - strengths_interests
+      - current_needs
+      - goals
+      - environment_adjustments
+      - adult_support
+      - observation_points
+      - review_date
+    optional:
+      - family_context
+      - peer_relationships
+      - safety_notes
+      - previous_plan_delta
+
+  class_plan:
+    required:
+      - class_id
+      - date
+      - group_landscape
+      - individual_plan_links
+      - common_environment_adjustments
+      - activity_options
+      - transition_support
+      - staffing_plan
+      - safety_checkpoints
+      - expected_observation_points
+
+  next_day_plan:
+    required:
+      - source_date
+      - target_date
+      - carry_over_items
+      - changes_from_today
+      - environment
+      - activities
+      - staffing
+      - safety
+      - observation_points
+      - responsible_staff
+      - human_approval
+
+  daily_log:
+    required:
+      - date
+      - class_id
+      - factual_observations
+      - activities
+      - child_responses
+      - staff_responses
+      - notable_changes
+      - follow_up_items
+
+  near_miss_report:
+    required:
+      - event_id
+      - date_time
+      - location
+      - factual_description
+      - immediate_response
+      - contributing_conditions
+      - recurrence_prevention
+      - escalation_status
+
+  incident_report:
+    required:
+      - incident_id
+      - date_time
+      - location
+      - factual_description
+      - persons_involved
+      - immediate_response
+      - notification_status
+      - follow_up
+      - prevention_update
+
+  meeting_record:
+    required:
+      - meeting_date
+      - participants
+      - agenda
+      - observations_shared
+      - decisions
+      - action_items
+      - responsible_persons
+      - due_dates
+
+  internal_report:
+    required:
+      - report_id
+      - received_at
+      - anonymous_or_pseudonymous_status
+      - factual_content
+      - category
+      - urgency
+      - access_level
+      - review_status
+      - response_record
+    privacy:
+      - reporter_identity_separated_from_content
+      - minimum_access
+      - audit_log
+      - no_ai_inference_of_reporter_identity
+
+  third_party_evaluation:
+    required:
+      - evaluation_period
+      - evaluation_scope
+      - evidence_set
+      - observed_strengths
+      - observed_risks
+      - recommendations
+      - organization_feedback
+      - improvement_actions
+      - next_review_points
+
+rotation:
+  dimensions:
+    time:
+      - past
+      - present
+      - next_day
+    scale:
+      - individual
+      - class
+      - organization
+      - external_environment
+    action:
+      - observation
+      - planning
+      - practice
+      - evaluation
+      - improvement
+  presenter_prompt: "同じ出来事を別の位相から見たとき、何が変わって見えるか？"
+
+human_gate:
+  plan: human_approval_required
+  staffing: human_decision_required
+  safety: human_decision_required
+  incident_classification: human_review_required
+  third_party_evaluation: evaluator_and_organization_review_required
