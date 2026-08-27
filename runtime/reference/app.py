@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from facility_landscape import build_facility_landscape
 from presence_time import build_presence_time_landscape
+from external_landscape import build_external_landscape
 
 app = FastAPI(title='Shirakami Nursery Resilience API', version='0.1.0-alpha1')
 
@@ -24,6 +25,18 @@ class SafetySignal(BaseModel):
     signal_type: str
     facts: List[str] = Field(min_length=1)
     occurred_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ExternalSignal(BaseModel):
+    category: str
+    source: str
+    observed_at: datetime = Field(default_factory=datetime.utcnow)
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    area: Optional[str] = None
+    severity: str = 'info'
+    summary: str
+    source_url: Optional[str] = None
+    raw_reference: Optional[str] = None
 
 class ChildPresence(BaseModel):
     facility_id: str
@@ -79,6 +92,7 @@ class IndividualPlanUpdate(BaseModel):
 observations: List[Observation] = []
 landscapes: List[Landscape] = []
 safety_signals: List[SafetySignal] = []
+external_signals: List[ExternalSignal] = []
 child_presence: List[ChildPresence] = []
 staff_presence: List[StaffPresence] = []
 individual_plans = {}
@@ -101,6 +115,15 @@ def add_landscape(item: Landscape):
 def add_safety_signal(item: SafetySignal):
     safety_signals.append(item)
     return {'accepted': True, 'human_review_required': True, 'signal': item}
+
+@app.post('/api/v1/external/signals', status_code=201)
+def add_external_signal(item: ExternalSignal):
+    external_signals.append(item)
+    return {'accepted': True, 'human_review_required': True, 'signal': item}
+
+@app.get('/api/v1/external/landscape')
+def external_landscape():
+    return build_external_landscape([x.model_dump() for x in external_signals])
 
 @app.post('/api/v1/presence/children', status_code=201)
 def add_child_presence(item: ChildPresence):
@@ -154,6 +177,7 @@ def daily_landscape():
         'safety_signals': safety_signals[-20:],
         'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
         'presence_time_landscape': build_presence_time_landscape([x.model_dump() for x in child_presence], [x.model_dump() for x in staff_presence]),
+        'external_landscape': build_external_landscape([x.model_dump() for x in external_signals]),
         'note': 'AI output is advisory; human review and facility policy remain authoritative.'
     }
 
@@ -181,9 +205,11 @@ def tomorrow_plan():
         'individual_support_considerations': individual_considerations,
         'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
         'presence_time_landscape': build_presence_time_landscape([x.model_dump() for x in child_presence], [x.model_dump() for x in staff_presence]),
+        'external_landscape': build_external_landscape([x.model_dump() for x in external_signals]),
         'checkpoints': ['子どもの選択が増えたか', '保育者の一斉指示が減ったか', '安全上の変化はないか'],
         'staffing_considerations': [f'{x.class_id}: 出席{x.attendance}人／配置{x.assigned_staff}人' for x in landscapes[-6:]],
         'safety_considerations': [s.facts for s in safety_signals[-10:]],
+        'external_considerations': [s.summary for s in external_signals[-20:]],
         'human_review_required': True
     }
 
