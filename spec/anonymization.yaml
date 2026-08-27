@@ -1,0 +1,57 @@
+version: 0.1.0-alpha1
+title: Privacy-Preserving Anonymization Policy
+purpose: 個人を特定できる情報を保護しつつ、保育LandscapeとEvidenceを利用可能にする
+principles:
+  - pseudonymization_is_not_anonymization
+  - data_minimization
+  - purpose_limitation
+  - separation_of_identity_and_context
+  - reidentification_risk_must_be_assessed
+identity_layer:
+  direct_identifiers:
+    - child_name
+    - staff_name
+    - guardian_name
+    - facility_name_when_sensitive
+    - address
+    - phone
+    - email
+  policy: store outside public Runtime context in protected identity vault
+pseudonymization:
+  policy: replace direct identifiers with scoped opaque identifiers
+  mapping_location: identity_vault
+  mapping_access: designated_authority_only
+  mapping_must_not_enter: public_repository
+anonymization:
+  release_levels:
+    internal:
+      allowed: [authorized_identity, minimum_necessary_context]
+    operational_anonymous:
+      allowed: [scoped_pseudonym, class_level_aggregates, time_landscape]
+      restrictions: [no_direct_identifier, no_identity_mapping]
+    external_evaluation:
+      allowed: [aggregated_evidence, deidentified_patterns, process_metrics]
+      restrictions: [no_direct_identifier, no_pseudonym_reidentification, minimum_group_size]
+    public:
+      allowed: [aggregate_statistics, synthetic_examples, architecture_metadata]
+      restrictions: [no_child_level_records, no_staff_level_records, no_small_cell_disclosure]
+reidentification_controls:
+  - suppress_rare_combinations
+  - suppress_small_groups
+  - remove_free_text_identifiers
+  - remove_precise_location_when_unnecessary
+  - generalize_timestamps_when_external_release_allows
+  - review_derived_fields_for_identity_leakage
+free_text:
+  policy: free text is treated as potentially identifying
+  action: redact_or_transform_before_external_release
+ai_rules:
+  - AI must not infer or reveal real identity from pseudonyms.
+  - AI must not join datasets for reidentification unless explicitly authorized for a legitimate operational purpose.
+  - AI outputs must inherit the release level of their input context.
+  - Public repository examples must use synthetic data.
+verification:
+  - privacy_review_before_external_export
+  - audit_export_scope
+  - test_reidentification_risk
+  - record_release_decision
