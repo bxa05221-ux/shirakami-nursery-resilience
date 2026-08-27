@@ -1,0 +1,67 @@
+version: 0.1.0-alpha1
+title: Individual Childcare Support Plan Model
+purpose: 個別の保育支援計画を日々の観察・発達経過・クラス保育・翌日計画へ接続する
+principles:
+  - child_centered
+  - observation_before_interpretation
+  - human_review_required
+  - plan_is_revisable
+  - evidence_is_preserved
+entities:
+  individual_support_plan:
+    required:
+      - child_id
+      - goals
+      - support_policy
+      - review_cycle
+    fields:
+      child_id: string
+      developmental_observation_refs: [string]
+      goals: [string]
+      strengths_and_interests: [string]
+      support_policy: [string]
+      environmental_adjustments: [string]
+      participation_and_choice: [string]
+      family_collaboration: [string]
+      class_integration_notes: [string]
+      review_cycle: string
+      status: [draft, active, review, archived]
+      revision_history: [string]
+      approved_by: [string]
+  daily_observation:
+    fields:
+      child_id: string
+      date_time: datetime
+      facts: [string]
+      child_voice_or_choice: string
+      support_provided: string
+      response: string
+      evidence_refs: [string]
+flow:
+  - individual_support_plan
+  - daily_observation
+  - individual_landscape
+  - class_landscape
+  - class_plan
+  - tomorrow_plan_draft
+  - teacher_revision
+  - approval
+  - evidence
+  - individual_support_plan_review
+integration:
+  developmental_records:
+    description: 遠城寺式等、施設が採用する発達経過資料への参照を保持する。尺度の解釈・診断は本モデルの責務外。
+  staffing:
+    description: 年齢、定員区分、在籍数、個別支援負荷等を考慮するPolicy層と接続する。
+  whole_group_care:
+    description: 個別の支援方針をクラス全体の環境・活動設計へ反映する。
+outputs:
+  - individual_plan_draft
+  - class_plan_considerations
+  - tomorrow_plan_considerations
+  - review_prompts
+safety:
+  - AI must not diagnose developmental disorders.
+  - AI must not determine abuse solely from model output.
+  - safeguarding and statutory reporting procedures take precedence.
+  - human approval is required before a plan becomes active.
