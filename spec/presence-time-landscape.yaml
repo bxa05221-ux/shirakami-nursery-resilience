@@ -1,0 +1,63 @@
+version: 0.1.0-alpha1
+title: Presence & Time Landscape Protocol
+purpose: 園児の登降園と在園時間を保育Landscapeの基礎情報として扱う
+principles:
+  - presence_is_landscape
+  - minimum_necessary_data
+  - facility_policy_controls
+  - human_review_required
+entities:
+  child_presence:
+    required: [facility_id, child_id, date]
+    fields:
+      facility_id: string
+      child_id: string
+      date: date
+      scheduled_arrival: datetime
+      actual_arrival: datetime
+      scheduled_departure: datetime
+      actual_departure: datetime
+      status: [scheduled, present, absent, late, early_departure]
+      attendance_note: string
+      recorded_by: string
+  staff_presence:
+    required: [facility_id, staff_id, date]
+    fields:
+      facility_id: string
+      staff_id: string
+      date: date
+      scheduled_start: datetime
+      actual_start: datetime
+      scheduled_end: datetime
+      actual_end: datetime
+      break_minutes: integer
+      assigned_class_ids: [string]
+      recorded_by: string
+  time_landscape:
+    fields:
+      time_slot: string
+      children_present_by_class: object
+      staff_present_by_class: object
+      child_staff_ratio_observation: object
+flow:
+  - child_presence
+  - staff_presence
+  - time_landscape
+  - class_landscape
+  - facility_landscape
+  - staffing_review
+  - tomorrow_plan
+outputs:
+  - current_presence
+  - hourly_presence_landscape
+  - staffing_considerations
+  - tomorrow_attendance_forecast
+privacy:
+  - Identity mapping remains outside the Runtime.
+  - Attendance notes must be limited to operationally necessary information.
+  - Do not infer sensitive reasons for absence.
+  - Access follows the Identity Vault and RBAC policy.
+safety:
+  - Presence data must not be used by AI as an autonomous staffing decision.
+  - Statutory staffing and facility rules remain authoritative.
+  - Missing or inconsistent attendance records must be surfaced for human confirmation.
