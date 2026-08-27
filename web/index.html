@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>保育レジリエンス α1.0</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:auto;padding:20px;line-height:1.6}textarea,input,select,button{width:100%;box-sizing:border-box;padding:12px;margin:6px 0 14px;font-size:16px}button{cursor:pointer}section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}pre{white-space:pre-wrap;background:#f5f5f5;padding:12px;border-radius:8px}</style>
+</head><body>
+<h1>保育レジリエンス α1.0</h1>
+<p>観測 → Landscape → 明日の保育計画案</p>
+<section><h2>今日の観察</h2>
+<label>クラス</label><select id="classId"><option value="class-1">1組</option><option value="class-2">2組</option><option value="class-3">3組</option><option value="class-4">4組</option><option value="class-5">5組</option><option value="class-6">6組</option></select>
+<label>観察内容</label><textarea id="facts" rows="6" placeholder="子どもの姿・環境・関わりなど、事実を入力してください"></textarea>
+<button onclick="save()">観測を登録</button></section>
+<section><h2>明日の保育</h2><button onclick="plan()">計画案を生成</button><pre id="result">ここに計画案が表示されます。</pre></section>
+<script>
+const key='nursery-alpha1-observations';
+function save(){const facts=document.getElementById('facts').value.trim();if(!facts)return alert('観察内容を入力してください');const a=JSON.parse(localStorage.getItem(key)||'[]');a.push({at:new Date().toISOString(),classId:classId.value,facts});localStorage.setItem(key,JSON.stringify(a));alert('観測を保存しました');factsEl().value='';}
+function factsEl(){return document.getElementById('facts')}
+function plan(){const a=JSON.parse(localStorage.getItem(key)||'[]');const latest=a.slice(-10);document.getElementById('result').textContent=latest.length?'【明日の保育計画案】\n\n観測事実:\n'+latest.map(x=>'・'+x.facts).join('\n')+'\n\n確認ポイント:\n・子どもの選択と主体性を確保する\n・一斉指示を必要最小限にする\n・環境調整で参加しやすくする\n・安全／ヒヤリハットを確認する\n・職員配置と支援負荷を確認する\n\n※これはドラフトです。保育者が確認・修正・承認してください。':'観測データがありません。');}
+</script></body></html>
