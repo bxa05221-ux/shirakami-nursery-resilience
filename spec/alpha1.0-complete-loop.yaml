@@ -1,0 +1,67 @@
+version: 1.0.0-alpha1
+title: Shirakami Nursery Resilience — Alpha 1.0 Complete Loop
+purpose: 個別から園全体、外部環境、翌日計画、実践、Evidenceまでを循環させる
+architecture:
+  identity:
+    - identity_vault
+    - pseudonymization
+    - role_based_access
+  observation:
+    - developmental_observation
+    - daily_observation
+    - safety_signal
+    - child_voice_and_choice
+  planning:
+    - individual_support_plan
+    - class_landscape
+    - facility_landscape
+    - tomorrow_plan
+  presence:
+    - child_arrival_departure
+    - staff_presence
+    - time_landscape
+  external:
+    - weather
+    - warnings
+    - wildlife_alerts
+    - local_events
+  evidence:
+    - immutable_observation_record
+    - plan_revision_history
+    - human_decision_record
+loop:
+  - observe
+  - contextualize
+  - aggregate
+  - forecast
+  - propose
+  - human_review
+  - implement
+  - record_evidence
+  - feed_back_to_observation
+facility_constraints:
+  max_classes: 6
+  max_children_per_individual_context: 20
+  staffing_and_capacity_rules: facility_policy
+  statutory_childcare_guidance: authoritative_external_knowledge
+outputs:
+  daily_dashboard: true
+  class_landscape: true
+  facility_landscape: true
+  tomorrow_plan_draft: true
+  time_window_context: true
+  anonymized_evidence_export: true
+governance:
+  ai_role: observation_and_proposal_support
+  human_role: final_judgment_and_approval
+  identity_control: facility
+  public_repository_must_exclude_identity_mapping: true
+  external_information_requires_source_traceability: true
+  safety_decisions_require_human_confirmation: true
+future_domains:
+  - kindergarten
+  - school
+  - employment_support
+  - eldercare
+  - hospital
+note: Alpha 1.0 is a reference architecture and must be validated against each facility's actual regulations, policies, workflows, and statutory requirements before operational deployment.
