@@ -1,0 +1,203 @@
+protocol: capacity_and_staffing
+version: "0.2"
+status: alpha
+purpose: >-
+  定員区分・年齢別在籍数・当日出席数・クラス編成・職員配置を同じLandscape上で扱い、
+  保育計画と安全判断を人員配置の現実に接続する。
+
+principles:
+  - 定員区分とクラス定員を混同しない
+  - 法令上の配置基準と園が目指す手厚い配置を分離する
+  - 当日出席数と在籍数を分離する
+  - 年齢別配置を基本単位とし、個別支援負荷を別軸で加味する
+  - AIは配置を最終決定しない
+  - 法令・自治体・施設種別ごとの最新基準を外部Policyとして更新可能にする
+  - 重大な安全リスクがある場合は最低基準を満たしていても追加配置を検討する
+
+pilot_scale:
+  classes_max: 6
+  children_per_class_max: 20
+  system_child_capacity_max: 120
+  note: >-
+    20人/クラスは本実証システムの運用上限であり、法令上の定員・学級編制・配置基準を意味しない。
+
+facility_profile:
+  required:
+    - facility_type
+    - legal_framework
+    - licensed_capacity
+    - capacity_band
+    - municipality
+    - policy_version
+  facility_type_options:
+    - kindergarten
+    - nursery_school
+    - certified_childcare_center
+    - other
+  legal_framework_note: >-
+    幼稚園、保育所、認定こども園等では適用される基準が異なるため、施設種別を必須入力とする。
+
+capacity_band:
+  definition: >-
+    公的な定員区分を施設の基礎属性として保持する。定員区分は個別クラス20人上限とは別概念。
+  nursery_school_reference_bands:
+    - "20人"
+    - "21-30人"
+    - "31-40人"
+    - "41-50人"
+    - "51-60人"
+    - "61-70人"
+    - "71-80人"
+    - "81-90人"
+    - "91-100人"
+    - "101-110人"
+    - "111-120人"
+    - "121-130人"
+    - "131-140人"
+    - "141-150人"
+    - "151-160人"
+    - "161-170人"
+    - "171人以上"
+  note: >-
+    上記は保育所の公定価格資料に見られる定員区分を参照したもの。実装時は施設種別・地域区分・認定区分等に応じて
+    最新の公式資料をPolicyとして選択する。
+
+child_count:
+  dimensions:
+    - enrolled_count
+    - daily_attendance_count
+    - age_0
+    - age_1
+    - age_2
+    - age_3
+    - age_4_plus
+    - class_count
+  rule: >-
+    配置判断では定員だけでなく、年齢別の在籍・当日出席・活動参加人数を保持する。
+
+staffing_policy:
+  baseline_reference_for_licensed_nursery_20plus:
+    source_date: "2026-04-16"
+    ratios:
+      age_0: "3:1"
+      age_1: "6:1"
+      age_2: "6:1"
+      age_3: "15:1"
+      age_4_plus: "25:1"
+    transition_and_additional_support:
+      age_1: "5:1配置に対する加算措置あり"
+      age_3: "20:1の経過措置あり"
+      age_4_plus: "30:1の経過措置あり"
+    source: "こども家庭庁 令和8年4月基礎資料"
+    source_url: "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/e4b817c9-5282-4ccc-b0d5-ce15d7b5018c/f924be75/20260416_policies_hoiku_228.pdf"
+  calculation_note: >-
+    上記は保育所の基準例であり、全施設に自動適用しない。認定こども園・幼稚園等は別Policyを選択する。
+
+staffing_layers:
+  legal_minimum:
+    description: 法令・条例・施設種別等に基づく最低配置
+  operational_target:
+    description: 園が設定する通常運営上の目標配置
+  support_adjustment:
+    description: 個別支援、安全、活動内容、環境、外部Landscape等による追加配置
+  emergency_adjustment:
+    description: 事故・災害・急な欠勤等による臨時配置
+
+support_load:
+  signals:
+    - individual_support_intensity
+    - simultaneous_high_support_children
+    - transition_difficulty
+    - elopement_or_absconding_risk
+    - medical_or_care_needs
+    - toileting_or_sleep_support_load
+    - conflict_density
+    - outdoor_activity_risk
+    - external_hazard
+    - staff_absence
+  rule: >-
+    支援負荷は法定配置人数を置き換える数値ではなく、追加配置・活動縮小・分散保育等を検討するための補助情報とする。
+
+class_model:
+  max_classes: 6
+  max_children_per_class: 20
+  required_fields:
+    - class_id
+    - age_group
+    - enrolled_count
+    - attendance_count
+    - assigned_staff
+    - floating_staff
+    - support_load
+  note: >-
+    クラス単位の配置と園全体のフロート職員を分けて記録する。縦割り・異年齢活動では活動単位の再編成も記録する。
+
+staff_model:
+  fields:
+    - staff_id_or_pseudonym
+    - qualification
+    - employment_type
+    - shift_start
+    - shift_end
+    - assigned_class
+    - role
+    - availability
+    - experience_level
+    - restrictions
+  roles:
+    - class_lead
+    - childcare_staff
+    - float_staff
+    - support_staff
+    - manager
+    - nurse_or_medical_support
+    - other
+
+runtime_flow:
+  - load_facility_policy
+  - load_capacity_band
+  - load_age_distribution
+  - load_daily_attendance
+  - load_staff_schedule
+  - load_individual_landscape_support_load
+  - load_external_landscape
+  - calculate_baseline_staffing
+  - compare_operational_target
+  - identify_support_pressure
+  - propose_options
+  - human_review
+  - finalize_plan
+  - record_decision_and_evidence
+
+output:
+  staffing_dashboard:
+    - facility_capacity
+    - capacity_band
+    - class_count
+    - age_distribution
+    - attendance
+    - legal_minimum_reference
+    - planned_staff
+    - shortage_or_surplus
+    - support_pressure
+    - recommended_adjustment
+    - human_decision
+  next_day_plan:
+    - class_or_activity
+    - child_group
+    - objective
+    - environment
+    - staffing
+    - support_points
+    - safety_points
+    - external_landscape
+    - observation_points
+    - contingency
+
+safety:
+  - >-
+    法定最低配置を満たしていることだけを「安全」と表示しない。
+  - >-
+    AIは欠員時の最終的な運営可否を決定しない。管理者・専門職・自治体等の判断を優先する。
+  - >-
+    最新の法令・通知・自治体基準を確認できない場合は、基準値を推測せず「Policy確認要」と表示する。
