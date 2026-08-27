@@ -35,6 +35,31 @@ AIは、保育者が子どもを見るための景色（Landscape）を整理し
 再観測
 ```
 
+## 運用規模 α1.0
+
+- **最大6クラス**
+- **1クラス最大20人**
+- **最大120人**を基本運用上限とする
+- 個別保育計画は児童単位で管理する
+
+詳細：[capacity-and-output-format-v0.1.yaml](protocols/capacity-and-output-format-v0.1.yaml)
+
+## 出力フォーマット
+
+同じLandscapeから、必要な文書を派生生成することで、職員の二重入力を減らす。
+
+- 今日の園Landscape
+- 個別保育計画案
+- クラス保育計画案
+- **翌日の保育計画案**
+- 保育日誌
+- ヒヤリハット／事故報告
+- 会議録
+- 匿名内部報告
+- 第三者評価 Evidence Summary
+
+詳細：[出力フォーマット仕様](docs/output-formats-alpha1.md)
+
 ## 3D位相回転アイゼンハワーマトリクス
 
 保育の優先順位を「重要度 × 緊急度」だけで固定しない。
@@ -49,9 +74,9 @@ AIは、保育者が子どもを見るための景色（Landscape）を整理し
 
 この仕組みにより、例えば「一斉指示に参加しにくい」という事象を、子どもの特性だけでなく、集団、環境、保育者の関わり、人員配置、園の保育文化、家庭・地域・外部環境まで含めて再観測できる。
 
-詳細：[`docs/3d-phase-rotation-eisenhower-matrix.md`](docs/3d-phase-rotation-eisenhower-matrix.md)
+詳細：[3D Phase Rotation](docs/3d-phase-rotation-eisenhower-matrix.md)
 
-プロトコル：[`protocols/phase-rotation-eisenhower-matrix-v0.1.yaml`](protocols/phase-rotation-eisenhower-matrix-v0.1.yaml)
+プロトコル：[phase-rotation-eisenhower-matrix-v0.1.yaml](protocols/phase-rotation-eisenhower-matrix-v0.1.yaml)
 
 ## 主要領域
 
@@ -65,6 +90,14 @@ AIは、保育者が子どもを見るための景色（Landscape）を整理し
 - スレゼンターによる問い返し
 - 日誌・会議録・マニュアル更新等の記録支援
 - 第三者評価と改善の逆流ループ
+
+## 漫画マニュアル
+
+制度説明を先に読ませるのではなく、保育者が「何が変わるのか」を景色として理解できる導入教材として漫画マニュアルを位置づける。
+
+漫画では、AIが保育を指示するのではなく、保育者と子どもを中心に、スレゼンターが観測の位相を回転させる。
+
+詳細：[漫画マニュアル](docs/manga-manual/README.md)
 
 ## 第三者評価
 
