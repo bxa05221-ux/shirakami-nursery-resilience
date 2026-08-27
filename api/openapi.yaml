@@ -1,0 +1,221 @@
+openapi: 3.0.3
+info:
+  title: Shirakami Nursery Resilience API
+  version: 0.1.0-alpha1
+  description: |
+    保育レジリエンス支援RuntimeのAPI仕様。
+    AIは保育判断を代替せず、観測・Evidence・計画案・安全Signal・外部Landscapeを
+    保育者および管理者が確認・修正・承認するための支援層として扱う。
+servers:
+  - url: https://example.invalid/api/v1
+    description: Reference server; deployment-specific URL is configured by each facility.
+tags:
+  - name: Landscape
+  - name: Children
+  - name: Plans
+  - name: Safety
+  - name: External
+  - name: Reporting
+  - name: Evaluation
+paths:
+  /landscape/daily:
+    get:
+      tags: [Landscape]
+      summary: 今日の園Landscapeを取得
+      responses:
+        '200':
+          description: Daily landscape
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DailyLandscape' }
+  /children/{childId}/observations:
+    post:
+      tags: [Children]
+      summary: 個別観測を登録
+      parameters:
+        - $ref: '#/components/parameters/ChildId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ObservationInput' }
+      responses:
+        '201': { description: Observation created }
+  /children/{childId}/plans/draft:
+    post:
+      tags: [Plans]
+      summary: 個別保育計画案を生成
+      description: 遠城寺式等の発達観測、観察、既存計画、環境情報を参照してドラフトを生成する。確定は人間が行う。
+      parameters:
+        - $ref: '#/components/parameters/ChildId'
+      responses:
+        '200':
+          description: Draft plan
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanDraft' }
+  /classes/{classId}/plans/draft:
+    post:
+      tags: [Plans]
+      summary: クラス保育計画案を生成
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      responses:
+        '200':
+          description: Class plan draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanDraft' }
+  /plans/tomorrow:
+    post:
+      tags: [Plans]
+      summary: 翌日の保育計画案を生成
+      description: 個別・クラス・園Landscape、安全Signal、人員配置、外部Landscapeを統合して案を生成する。
+      responses:
+        '200':
+          description: Tomorrow plan draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanDraft' }
+  /safety/signals:
+    post:
+      tags: [Safety]
+      summary: ヒヤリハット・インシデント・虐待疑い等のSafety Signalを登録
+      description: 重大な安全・虐待等の案件についてAIは判定主体にならず、所定の人間による初動判断と法令・自治体等の手順を優先する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SafetySignalInput' }
+      responses:
+        '201': { description: Safety signal created }
+  /external-landscape:
+    get:
+      tags: [External]
+      summary: 天候・防災・害獣・地域情報等の外部Landscapeを取得
+      responses:
+        '200':
+          description: External landscape
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExternalLandscape' }
+  /reports/internal/anonymous:
+    post:
+      tags: [Reporting]
+      summary: 匿名内部通報を登録
+      description: 通報者情報と内容を分離して扱う。アクセス権限、監査、通報者保護を実装側の必須要件とする。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnonymousReportInput' }
+      responses:
+        '202': { description: Anonymous report accepted }
+  /evaluation/evidence-summary:
+    post:
+      tags: [Evaluation]
+      summary: 第三者評価用Evidence Summaryを生成
+      description: 日常の記録・改善履歴をEvidenceとして整理し、評価結果を園Landscapeへ還流できる構造を維持する。
+      responses:
+        '200':
+          description: Evidence summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EvidenceSummary' }
+components:
+  parameters:
+    ChildId:
+      name: childId
+      in: path
+      required: true
+      schema: { type: string }
+    ClassId:
+      name: classId
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    DailyLandscape:
+      type: object
+      required: [date, classes, staffing, external]
+      properties:
+        date: { type: string, format: date }
+        classes:
+          type: array
+          maxItems: 6
+          items: { $ref: '#/components/schemas/ClassLandscape' }
+        staffing: { $ref: '#/components/schemas/StaffingLandscape' }
+        external: { $ref: '#/components/schemas/ExternalLandscape' }
+    ClassLandscape:
+      type: object
+      properties:
+        classId: { type: string }
+        attendance: { type: integer, minimum: 0, maximum: 20 }
+        observationCount: { type: integer, minimum: 0 }
+        supportLoad: { type: number, minimum: 0 }
+    StaffingLandscape:
+      type: object
+      properties:
+        availableStaff: { type: integer, minimum: 0 }
+        assignedStaff: { type: integer, minimum: 0 }
+        requiredPolicyReference: { type: string }
+        surplusOrShortfall: { type: integer }
+    ObservationInput:
+      type: object
+      required: [observedAt, context, facts]
+      properties:
+        observedAt: { type: string, format: date-time }
+        context: { type: string }
+        facts:
+          type: array
+          items: { type: string }
+        childVoiceOrChoice: { type: string }
+        supportProvided: { type: string }
+    PlanDraft:
+      type: object
+      properties:
+        status: { type: string, enum: [draft, needs_review, approved] }
+        goals: { type: array, items: { type: string } }
+        environment: { type: array, items: { type: string } }
+        support: { type: array, items: { type: string } }
+        checkpoints: { type: array, items: { type: string } }
+        safetyPoints: { type: array, items: { type: string } }
+        staffingConsiderations: { type: array, items: { type: string } }
+        rationale: { type: string }
+        sourceEvidenceIds: { type: array, items: { type: string } }
+    SafetySignalInput:
+      type: object
+      required: [occurredAt, signalType, facts]
+      properties:
+        occurredAt: { type: string, format: date-time }
+        signalType:
+          type: string
+          enum: [near_miss, incident, accident, safeguarding_concern, suspected_abuse, complaint, other]
+        facts: { type: array, items: { type: string } }
+        immediateAction: { type: string }
+        humanReviewerRequired: { type: boolean, default: true }
+    ExternalLandscape:
+      type: object
+      properties:
+        weather: { type: object, additionalProperties: true }
+        disaster: { type: object, additionalProperties: true }
+        wildlife: { type: object, additionalProperties: true }
+        local: { type: object, additionalProperties: true }
+        sources: { type: array, items: { type: string } }
+        retrievedAt: { type: string, format: date-time }
+    AnonymousReportInput:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+        category: { type: string }
+        occurredAt: { type: string, format: date-time }
+        anonymousToken: { type: string, description: Server-generated non-identifying token; do not use names or contact details. }
+    EvidenceSummary:
+      type: object
+      properties:
+        period: { type: string }
+        evidence: { type: array, items: { type: string } }
+        improvementHistory: { type: array, items: { type: string } }
+        openQuestions: { type: array, items: { type: string } }
+        humanReviewRequired: { type: boolean, default: true }
