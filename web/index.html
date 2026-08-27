@@ -3,18 +3,29 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>保育レジリエンス α1.0</title>
-<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:auto;padding:20px;line-height:1.6}textarea,input,select,button{width:100%;box-sizing:border-box;padding:12px;margin:6px 0 14px;font-size:16px}button{cursor:pointer}section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}pre{white-space:pre-wrap;background:#f5f5f5;padding:12px;border-radius:8px}</style>
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:auto;padding:16px;line-height:1.55;background:#fafafa}section{background:white;border:1px solid #ddd;border-radius:14px;padding:16px;margin:12px 0}textarea,input,select,button{width:100%;box-sizing:border-box;padding:11px;margin:5px 0 12px;font-size:16px}button{cursor:pointer;border-radius:8px;border:1px solid #999;background:#fff}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.muted{color:#666;font-size:.9em}pre{white-space:pre-wrap;background:#f3f3f3;padding:12px;border-radius:8px;min-height:80px}@media(max-width:560px){.grid{grid-template-columns:1fr}}</style>
 </head><body>
 <h1>保育レジリエンス α1.0</h1>
-<p>観測 → Landscape → 明日の保育計画案</p>
-<section><h2>今日の観察</h2>
+<p>観測 → Landscape → 位相回転 → 明日の保育</p>
+<p class="muted">AIは判断を代替しません。生成案は必ず保育者・管理者が確認、修正、承認してください。</p>
+<section><h2>1. 今日の観察</h2>
 <label>クラス</label><select id="classId"><option value="class-1">1組</option><option value="class-2">2組</option><option value="class-3">3組</option><option value="class-4">4組</option><option value="class-5">5組</option><option value="class-6">6組</option></select>
-<label>観察内容</label><textarea id="facts" rows="6" placeholder="子どもの姿・環境・関わりなど、事実を入力してください"></textarea>
-<button onclick="save()">観測を登録</button></section>
-<section><h2>明日の保育</h2><button onclick="plan()">計画案を生成</button><pre id="result">ここに計画案が表示されます。</pre></section>
+<label>観察内容（事実）</label><textarea id="facts" rows="5" placeholder="子どもの姿・環境・関わりなど"></textarea>
+<label>子どもの選択・声</label><textarea id="voice" rows="3" placeholder="本人が選んだこと、伝えたこと"></textarea>
+<button onclick="saveObservation()">観測を登録</button></section>
+<section><h2>2. 園Landscape</h2><div class="grid"><div><label>出席人数</label><input id="attendance" type="number" min="0" max="20" value="0"></div><div><label>配置職員数</label><input id="staff" type="number" min="0" value="0"></div></div><label>配置・環境上の気づき</label><textarea id="staffNote" rows="3"></textarea><button onclick="saveLandscape()">Landscapeを保存</button></section>
+<section><h2>3. Safety Signal</h2><label>種類</label><select id="signalType"><option value="near_miss">ヒヤリハット</option><option value="incident">インシデント</option><option value="accident">事故</option><option value="safeguarding_concern">安全・権利擁護上の懸念</option><option value="suspected_abuse">虐待が疑われる事象</option><option value="complaint">相談・苦情</option></select><label>事実</label><textarea id="signalFacts" rows="4"></textarea><button onclick="saveSignal()">Safety Signalを登録</button><p class="muted">重大な安全・虐待等は、所定の人間による初動判断・報告・関係機関との連携を優先します。</p></section>
+<section><h2>4. 位相を回す</h2><p>同じ事象を「個別→集団→園→外部」「昨日→今日→明日」の視点で確認します。</p><button onclick="showLandscape()">現在のLandscapeを表示</button><pre id="landscape"></pre></section>
+<section><h2>5. 明日の保育計画案</h2><button onclick="makePlan()">計画案を生成</button><pre id="plan"></pre><button onclick="editPlan()">計画案を修正</button><textarea id="editedPlan" rows="8" placeholder="生成案を修正した内容を入力"></textarea><button onclick="approvePlan()">保育者確認・承認</button><p id="status" class="muted"></p></section>
 <script>
-const key='nursery-alpha1-observations';
-function save(){const facts=document.getElementById('facts').value.trim();if(!facts)return alert('観察内容を入力してください');const a=JSON.parse(localStorage.getItem(key)||'[]');a.push({at:new Date().toISOString(),classId:classId.value,facts});localStorage.setItem(key,JSON.stringify(a));alert('観測を保存しました');factsEl().value='';}
+const K={obs:'nursery-alpha1-observations',land:'nursery-alpha1-landscape',sig:'nursery-alpha1-signals',plan:'nursery-alpha1-plan'};
+const get=k=>JSON.parse(localStorage.getItem(k)||'[]'); const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+function saveObservation(){const facts=document.getElementById('facts').value.trim();if(!facts)return alert('観察内容を入力してください');const a=get(K.obs);a.push({at:new Date().toISOString(),classId:classId.value,facts,voice:voice.value.trim()});put(K.obs,a);factsEl().value='';voice.value='';alert('観測を保存しました');}
 function factsEl(){return document.getElementById('facts')}
-function plan(){const a=JSON.parse(localStorage.getItem(key)||'[]');const latest=a.slice(-10);document.getElementById('result').textContent=latest.length?'【明日の保育計画案】\n\n観測事実:\n'+latest.map(x=>'・'+x.facts).join('\n')+'\n\n確認ポイント:\n・子どもの選択と主体性を確保する\n・一斉指示を必要最小限にする\n・環境調整で参加しやすくする\n・安全／ヒヤリハットを確認する\n・職員配置と支援負荷を確認する\n\n※これはドラフトです。保育者が確認・修正・承認してください。':'観測データがありません。');}
+function saveLandscape(){const a=get(K.land);a.push({at:new Date().toISOString(),classId:classId.value,attendance:+attendance.value,staff:+staff.value,note:staffNote.value.trim()});put(K.land,a);alert('Landscapeを保存しました')}
+function saveSignal(){const facts=signalFacts.value.trim();if(!facts)return alert('事実を入力してください');const a=get(K.sig);a.push({at:new Date().toISOString(),type:signalType.value,facts});put(K.sig,a);signalFacts.value='';alert('Safety Signalを登録しました')}
+function showLandscape(){const o=get(K.obs).slice(-10),l=get(K.land).slice(-6),s=get(K.sig).slice(-10);landscape.textContent='【個別】\n'+(o.length?o.map(x=>`・${x.classId}: ${x.facts}`).join('\n'):'なし')+'\n\n【クラス／配置】\n'+(l.length?l.map(x=>`・${x.classId}: 出席${x.attendance}人／職員${x.staff}人 ${x.note}`).join('\n'):'なし')+'\n\n【Safety】\n'+(s.length?s.map(x=>`・${x.type}: ${x.facts}`).join('\n'):'なし')+'\n\n【位相回転】\n個別 → 集団 → 園 → 外部\n過去 → 現在 → 明日';}
+function makePlan(){const o=get(K.obs).slice(-10),l=get(K.land).slice(-6),s=get(K.sig).slice(-10);const text='【明日の保育計画案｜ドラフト】\n\n■ 子どもの姿・観測\n'+(o.length?o.map(x=>'・'+x.facts).join('\n'):'・観測なし')+'\n\n■ 環境・集団への配慮\n・子どもの選択と主体性を確保する\n・一斉指示を必要最小限にする\n・環境調整で参加しやすくする\n\n■ 個別支援\n・個々の発達・参加しやすい条件を確認する\n\n■ 安全・ヒヤリハット確認\n'+(s.length?s.map(x=>'・'+x.facts).join('\n'):'・新規Signalなし')+'\n\n■ 人員配置\n'+(l.length?l.map(x=>`・${x.classId}: 出席${x.attendance}人／配置${x.staff}人`).join('\n'):'・配置情報なし')+'\n\n■ 明日のチェックポイント\n・子ども自身の選択が増えたか\n・保育者の一斉指示が減ったか\n・環境調整で参加しやすくなったか\n・安全上の変化はないか\n\n※制度・園方針・発達資料との整合を確認し、保育者が修正・承認してください。';put(K.plan,[{at:new Date().toISOString(),text}]);plan.textContent=text;editedPlan.value=text;}
+function editPlan(){editedPlan.focus();}
+function approvePlan(){const text=editedPlan.value.trim();if(!text)return alert('修正・確認後の計画案を入力してください');put(K.plan,[{at:new Date().toISOString(),text,status:'approved'}]);status.textContent='保育者による確認・承認を記録しました。';}
 </script></body></html>
