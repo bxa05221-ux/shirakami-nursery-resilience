@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from facility_landscape import build_facility_landscape
 
 app = FastAPI(title='Shirakami Nursery Resilience API', version='0.1.0-alpha1')
 
@@ -106,8 +107,13 @@ def daily_landscape():
         'individual_support_plans': list(individual_plans.values()),
         'landscapes': landscapes[-6:],
         'safety_signals': safety_signals[-20:],
+        'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
         'note': 'AI output is advisory; human review and facility policy remain authoritative.'
     }
+
+@app.get('/api/v1/landscape/facility')
+def facility_landscape():
+    return build_facility_landscape(observations, landscapes, safety_signals, individual_plans)
 
 @app.post('/api/v1/plans/tomorrow')
 def tomorrow_plan():
@@ -127,6 +133,7 @@ def tomorrow_plan():
         'goals': ['子どもの選択と主体性を確保する', '一斉指示を必要最小限にする'],
         'observed_facts': facts,
         'individual_support_considerations': individual_considerations,
+        'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
         'checkpoints': ['子どもの選択が増えたか', '保育者の一斉指示が減ったか', '安全上の変化はないか'],
         'staffing_considerations': [f'{x.class_id}: 出席{x.attendance}人／配置{x.assigned_staff}人' for x in landscapes[-6:]],
         'safety_considerations': [s.facts for s in safety_signals[-10:]],
