@@ -1,0 +1,59 @@
+version: 0.1.0-alpha1
+title: Evidence Ledger Protocol
+purpose: 観測・判断・実践・変化を追跡可能なEvidenceとして記録する
+principles:
+  - record_not_rewrite
+  - provenance_required
+  - human_decision_is_evidence
+  - correction_creates_new_event
+  - privacy_level_inherited
+record:
+  required:
+    - evidence_id
+    - event_type
+    - occurred_at
+    - recorded_at
+    - source
+    - actor
+    - context_scope
+    - payload_hash
+    - privacy_level
+  event_types:
+    - observation
+    - landscape_change
+    - forecast
+    - proposal
+    - human_decision
+    - implementation
+    - outcome
+    - correction
+lifecycle:
+  - observed
+  - contextualized
+  - proposed
+  - decided
+  - implemented
+  - evaluated
+  - fed_back
+integrity:
+  append_only: true
+  original_event_must_be_preserved: true
+  corrections_reference_original: true
+  deletion_requires_authorized_retention_policy: true
+provenance:
+  source_required: true
+  actor_required: true
+  timestamp_required: true
+  model_or_runtime_version_when_ai_involved: true
+privacy:
+  identity_mapping_excluded: true
+  release_level_must_be_recorded: true
+  external_export_requires_anonymization_review: true
+ai:
+  - AI-generated proposals are never recorded as human decisions.
+  - Human approval or rejection must be represented as a separate event.
+  - AI may summarize Evidence but must not rewrite original Evidence.
+third_party_evaluation:
+  export: anonymized_aggregate_evidence
+  preserve_traceability: true
+  exclude_identity_mapping: true
