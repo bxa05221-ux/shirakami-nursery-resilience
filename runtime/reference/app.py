@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from facility_landscape import build_facility_landscape
+from presence_time import build_presence_time_landscape
 
 app = FastAPI(title='Shirakami Nursery Resilience API', version='0.1.0-alpha1')
 
@@ -23,6 +24,31 @@ class SafetySignal(BaseModel):
     signal_type: str
     facts: List[str] = Field(min_length=1)
     occurred_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ChildPresence(BaseModel):
+    facility_id: str
+    child_id: str
+    class_id: str
+    date: str
+    scheduled_arrival: Optional[datetime] = None
+    actual_arrival: Optional[datetime] = None
+    scheduled_departure: Optional[datetime] = None
+    actual_departure: Optional[datetime] = None
+    status: str = 'scheduled'
+    attendance_note: Optional[str] = None
+    recorded_by: str
+
+class StaffPresence(BaseModel):
+    facility_id: str
+    staff_id: str
+    date: str
+    scheduled_start: Optional[datetime] = None
+    actual_start: Optional[datetime] = None
+    scheduled_end: Optional[datetime] = None
+    actual_end: Optional[datetime] = None
+    break_minutes: int = Field(default=0, ge=0)
+    assigned_class_ids: List[str] = []
+    recorded_by: str
 
 class IndividualSupportPlan(BaseModel):
     child_id: str
@@ -53,6 +79,8 @@ class IndividualPlanUpdate(BaseModel):
 observations: List[Observation] = []
 landscapes: List[Landscape] = []
 safety_signals: List[SafetySignal] = []
+child_presence: List[ChildPresence] = []
+staff_presence: List[StaffPresence] = []
 individual_plans = {}
 
 @app.get('/health')
@@ -73,6 +101,23 @@ def add_landscape(item: Landscape):
 def add_safety_signal(item: SafetySignal):
     safety_signals.append(item)
     return {'accepted': True, 'human_review_required': True, 'signal': item}
+
+@app.post('/api/v1/presence/children', status_code=201)
+def add_child_presence(item: ChildPresence):
+    child_presence.append(item)
+    return item
+
+@app.post('/api/v1/presence/staff', status_code=201)
+def add_staff_presence(item: StaffPresence):
+    staff_presence.append(item)
+    return item
+
+@app.get('/api/v1/presence/time-landscape')
+def presence_time_landscape():
+    return build_presence_time_landscape(
+        [x.model_dump() for x in child_presence],
+        [x.model_dump() for x in staff_presence],
+    )
 
 @app.post('/api/v1/children/{child_id}/support-plan', response_model=IndividualSupportPlan, status_code=201)
 def create_support_plan(child_id: str, item: IndividualSupportPlan):
@@ -108,6 +153,7 @@ def daily_landscape():
         'landscapes': landscapes[-6:],
         'safety_signals': safety_signals[-20:],
         'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
+        'presence_time_landscape': build_presence_time_landscape([x.model_dump() for x in child_presence], [x.model_dump() for x in staff_presence]),
         'note': 'AI output is advisory; human review and facility policy remain authoritative.'
     }
 
@@ -134,6 +180,7 @@ def tomorrow_plan():
         'observed_facts': facts,
         'individual_support_considerations': individual_considerations,
         'facility_landscape': build_facility_landscape(observations, landscapes, safety_signals, individual_plans),
+        'presence_time_landscape': build_presence_time_landscape([x.model_dump() for x in child_presence], [x.model_dump() for x in staff_presence]),
         'checkpoints': ['子どもの選択が増えたか', '保育者の一斉指示が減ったか', '安全上の変化はないか'],
         'staffing_considerations': [f'{x.class_id}: 出席{x.attendance}人／配置{x.assigned_staff}人' for x in landscapes[-6:]],
         'safety_considerations': [s.facts for s in safety_signals[-10:]],
