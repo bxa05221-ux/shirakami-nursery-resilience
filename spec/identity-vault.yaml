@@ -1,0 +1,52 @@
+version: 0.1.0-alpha1
+title: Identity Vault & Pseudonymization Protocol
+purpose: 実名・仮名・匿名IDを分離し、保育Landscapeから本人識別情報を切り離す
+principles:
+  - identity_separation
+  - data_minimization
+  - least_privilege
+  - facility_controlled_mapping
+  - auditability
+  - no_identity_mapping_in_public_repository
+layers:
+  identity_vault:
+    stores: [real_name, facility_name, pseudonym, anonymous_id]
+    boundary: facility_controlled
+    rule: 実名と匿名IDの対応表はGitHubおよび共有Landscapeに保存しない
+  runtime:
+    stores: [anonymous_id, pseudonym, observations, support_plans, landscape, evidence]
+    default_identity: anonymous_id
+  presentation:
+    stores: [pseudonym]
+    rule: 職員画面では原則として仮名を表示し、実名表示は権限に応じて限定する
+roles:
+  staff: pseudonym_only
+  class_lead: assigned_children_pseudonym
+  facility_manager: authorized_identity_resolution
+  external_evaluator: anonymized_evidence
+  ai_runtime: anonymous_id_only
+mapping:
+  fields:
+    facility_id: string
+    child_id: string
+    pseudonym: string
+    real_name_reference: string
+  requirements:
+    - unique_per_facility
+    - encrypted_at_rest
+    - access_logged
+    - export_disabled_by_default
+    - retention_policy_required
+api_contract:
+  resolve_for_authorized_user: restricted
+  pseudonymize: facility_internal
+  anonymize_evidence: runtime
+  audit_identity_access: required
+safety:
+  - Do not place names, addresses, contact information, or identity mappings in public repositories.
+  - Do not expose identity mappings to AI by default.
+  - Emergency access must be explicitly logged and governed by facility policy.
+  - De-identification does not eliminate privacy risk; small groups and combinations of attributes can re-identify a person.
+portability:
+  identity_vault_is_domain_specific: true
+  compatible_domains: [nursery, kindergarten, school, employment_support, eldercare, hospital]
