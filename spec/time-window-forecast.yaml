@@ -1,0 +1,50 @@
+version: 0.1.0-alpha1
+title: Time Window Forecast Protocol
+purpose: 外部情報を保育の時間軸に重ね、翌日の判断材料として提示する
+principles:
+  - forecast_is_context_not_instruction
+  - time_window_first
+  - uncertainty_is_explicit
+  - source_traceability
+  - human_review_required
+inputs:
+  external_events:
+    - weather
+    - precipitation
+    - temperature
+    - wind
+    - lightning
+    - warnings
+    - wildlife_alerts
+    - local_events
+  facility_context:
+    - child_presence_forecast
+    - staff_presence_forecast
+    - planned_activities
+    - class_landscape
+output:
+  time_windows:
+    fields:
+      - start
+      - end
+      - phenomenon
+      - probability_or_confidence
+      - source
+      - impact_candidates
+      - recommended_review
+  examples:
+    - time: 09:00-10:30
+      phenomenon: precipitation_risk_low
+      recommended_review: 戸外活動候補として確認
+    - time: 10:30-12:00
+      phenomenon: precipitation_risk_increasing
+      recommended_review: 活動前倒し・室内代替を検討
+    - time: 15:00-16:00
+      phenomenon: heavy_rain_possible
+      recommended_review: 降園時の安全情報を確認
+rules:
+  - AI must not convert a forecast into an automatic childcare decision.
+  - Forecast values must retain source and uncertainty.
+  - Safety alerts take precedence over convenience-oriented activity suggestions.
+  - Statutory staffing rules and facility policies remain authoritative.
+  - Time windows are planning aids and must be rechecked against current conditions.
