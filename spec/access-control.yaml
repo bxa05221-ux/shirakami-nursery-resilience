@@ -1,0 +1,43 @@
+version: 0.1.0-alpha1
+title: Nursery Resilience Access Control
+purpose: 園児・職員・保育計画・通報・Evidenceへのアクセス境界を定義する
+principles:
+  - least_privilege
+  - need_to_know
+  - identity_mapping_is_separate
+  - sensitive_records_are_restricted
+  - human_authority_is_explicit
+roles:
+  system_admin:
+    can: [system_configuration, user_role_management, audit_access]
+    cannot: [view_child_support_content_by_default]
+  director:
+    can: [facility_landscape, class_landscape, support_plan_review, plan_approval, safety_review, audit_access]
+  lead_teacher:
+    can: [assigned_class_landscape, assigned_child_support_plans, daily_plan_draft, safety_review]
+  teacher:
+    can: [assigned_class_landscape, assigned_child_records, daily_observation, plan_draft]
+  support_staff:
+    can: [assigned_support_tasks, minimum_necessary_child_context]
+  external_evaluator:
+    can: [approved_anonymized_evidence]
+    cannot: [identity_mapping, unrestricted_child_records]
+  whistleblower_reviewer:
+    can: [anonymized_report_intake, restricted_case_review]
+    cannot: [unrelated_child_records]
+  ai_runtime:
+    can: [process_authorized_context, generate_observation_summary, generate_plan_proposal]
+    cannot: [identity_mapping, autonomous_decision, role_granting, report_case_closure]
+resources:
+  identity_mapping: director_only_or_designated_authority
+  individual_support_plan: assigned_staff_and_authorized_reviewers
+  attendance: assigned_staff_and_authorized_management
+  staffing: management_and_authorized_staff
+  whistleblower_reports: designated_reviewer_only
+  evidence_exports: approved_anonymized_scope_only
+rules:
+  - Every access decision must be attributable to a role and user identity.
+  - AI access inherits the requesting user's authorization and may not escalate it.
+  - Identity-to-pseudonym mapping is never exposed to public repositories.
+  - Access to sensitive records must be auditable.
+  - Facility policy and applicable law take precedence over this reference policy.
