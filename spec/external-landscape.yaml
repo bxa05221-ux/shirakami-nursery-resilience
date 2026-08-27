@@ -1,0 +1,50 @@
+version: 0.1.0-alpha1
+title: External Landscape Protocol
+purpose: 園外の環境変化を保育Landscapeへ取り込むための共通契約
+principles:
+  - source_traceability
+  - freshness_is_explicit
+  - observation_not_automation
+  - local_authority_priority
+  - human_review_required
+sources:
+  weather:
+    examples: [気象庁, local_weather_service]
+    fields: [forecast_time, condition, precipitation_probability, temperature, warnings, source, observed_at]
+  disaster:
+    examples: [municipal_disaster_portal, prefectural_disaster_portal]
+    fields: [alert_type, severity, area, issued_at, source, url]
+  wildlife:
+    examples: [municipal_wildlife_alerts, police_or_prefectural_alerts]
+    fields: [species, area, occurrence_time, alert_level, source, url]
+  traffic:
+    examples: [road_authority, police, local_transport]
+    fields: [area, disruption_type, severity, valid_from, valid_until, source, url]
+  events:
+    examples: [facility_calendar, municipal_calendar]
+    fields: [event, area, start, end, source]
+contract:
+  external_signal:
+    required: [category, source, observed_at]
+    fields:
+      category: string
+      source: string
+      observed_at: datetime
+      valid_from: datetime
+      valid_until: datetime
+      area: string
+      severity: string
+      summary: string
+      source_url: string
+      raw_reference: string
+integration:
+  - external_signal
+  - facility_landscape
+  - presence_time_landscape
+  - safety_review
+  - tomorrow_plan
+rules:
+  - External information is advisory context, not an autonomous childcare decision.
+  - Official local authority information takes precedence over secondary sources.
+  - Stale or conflicting signals must be surfaced for human confirmation.
+  - Outdoor activity recommendations require human review.
