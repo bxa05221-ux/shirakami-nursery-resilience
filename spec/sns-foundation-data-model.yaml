@@ -1,0 +1,84 @@
+version: 0.1.0-alpha1
+title: SNS式保育 Foundation Data Model Integration
+purpose: SNS式保育の既存概念を、保育レジリエンスの基礎情報・Landscape・Evidenceへ接続する
+source_basis:
+  - sns_hoiku_protocol_v1.1
+  - sns_hoiku_tekimoku
+  - nursery_resilience_alpha1
+principle: 基礎情報を豊富に保持し、判断・提案・評価とは分離する
+foundation_domains:
+  child:
+    - development_observation
+    - interest_and_preference
+    - daily_state
+    - attendance_presence
+    - individual_support_plan
+    - support_history
+  activity:
+    - child_initiated_activity
+    - peer_interaction
+    - activity_propagation
+    - group_participation
+    - adult_support_observation
+  environment:
+    - class_context
+    - facility_context
+    - staffing
+    - capacity
+    - schedule
+    - physical_environment
+  external:
+    - weather
+    - warnings
+    - wildlife_alerts
+    - local_events
+  organizational:
+    - childcare_policy
+    - education_and_childcare_guidelines
+    - manuals
+    - meetings
+    - training
+storage_model:
+  db:
+    role: current_structured_state
+    examples:
+      - child_presence
+      - staff_presence
+      - class_membership
+      - support_plan_current_state
+      - activity_records
+  documents_yaml:
+    role: protocol_and_semantic_context
+    examples:
+      - sns_childcare_protocol
+      - childcare_policy
+      - operational_rules
+      - knowledge_references
+  evidence_ledger:
+    role: immutable_change_history
+    examples:
+      - observation
+      - landscape_change
+      - proposal
+      - human_decision
+      - implementation
+      - outcome
+relationships:
+  foundation_data_to_landscape: contextualize_without_deciding
+  landscape_to_runtime: authorized_context_only
+  runtime_to_proposal: proposal_only
+  human_decision_to_evidence: separate_event
+  evidence_to_next_observation: feedback
+sns_observation_pattern:
+  - individual_signal
+  - peer_response
+  - child_initiated_activity
+  - propagation_to_group
+  - adult_observation
+  - planning_feedback
+constraints:
+  - foundation_data_is_not_evaluation
+  - foundation_data_is_not_automatic_diagnosis
+  - ai_must_not_turn_observation_into_automatic_judgment
+  - statutory_rules_and_facility_policy_remain_authoritative
+  - privacy_and_release_level_apply_to_all_layers
