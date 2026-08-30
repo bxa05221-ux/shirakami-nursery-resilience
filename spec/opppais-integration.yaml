@@ -1,0 +1,57 @@
+version: 0.1.0-alpha1
+title: OPPAIS Integration Boundary
+purpose: OPPAISを子ども・保護者側のContext Interfaceとして位置づけ、Nursery Resilienceへ接続する
+position:
+  oppeais_layer: upstream_human_context_interface
+  nursery_resilience: domain_resilience_runtime
+  relationship: loose_coupling
+principle: OPPAISを保育機能へ埋め込まず、人間側Contextの入口として接続する
+flow:
+  - child_guardian_context
+  - oppais_capture
+  - consent_and_privacy_boundary
+  - foundation_data
+  - shared_landscape
+  - nursery_runtime
+  - human_review
+  - evidence
+  - feedback_to_child_guardian_context
+context_types:
+  - child_expression
+  - child_choice
+  - interest_and_preference
+  - family_observation
+  - concern
+  - question
+  - reflection
+  - request_for_dialogue
+boundary:
+  oppais_must_not:
+    - diagnose_children
+    - decide_childcare_actions
+    - evaluate_staff
+    - determine_staffing
+    - override_guardian_consent
+  nursery_runtime_must_not:
+    - treat_oppais_input_as_fact_without_context
+    - expose_private_guardian_context_without_authorization
+    - convert_ai_proposal_into_human_decision
+integration_contract:
+  input: authorized_human_context
+  output_to_nursery: scoped_foundation_context
+  output_to_guardian: landscape_feedback_and_shared_questions
+  decision_owner: authorized_human
+  evidence_owner: evidence_ledger
+privacy:
+  identity_mapping: separate_protected_boundary
+  consent_scope: explicit
+  external_release: anonymized_aggregate_only
+architecture:
+  common_layer: Human_Context
+  domain_adapter: Nursery_Resilience_Adapter
+  future_adapters:
+    - school_resilience
+    - employment_support_resilience
+    - elderly_care_resilience
+    - healthcare_resilience
+success_condition: OPPAIS側の人間Contextを保育固有のRuntimeへ安全に渡し、結果を人間へ返し、Evidenceとして循環できること
