@@ -1,0 +1,64 @@
+version: 0.1.0-alpha1
+title: Child Guardian to Nursery Evidence Data Flow
+purpose: 子ども・家庭・園の基礎情報をSNS式保育Foundation Data Modelと統合する
+layers:
+  home:
+    inputs: [daily_condition, family_observation, interest_and_preference, child_expression, questions]
+    output: guardian_context
+  child:
+    inputs: [expression, choice, interest, activity, peer_response]
+    output: child_landscape
+  nursery:
+    inputs: [attendance_presence, development_observation, activity_observation, support_history, staffing_context, environment]
+    output: nursery_context
+  external:
+    inputs: [weather, warnings, wildlife_alerts, local_information]
+    output: external_context
+  foundation:
+    source: spec/sns-foundation-data-model.yaml
+    role: normalize_and_scope_context
+  landscape:
+    role: combine_authorized_context_without_decision
+  runtime:
+    role: observe_relations_and_prepare_proposals
+  human:
+    role: dialogue_decision_and_approval
+  evidence:
+    source: spec/evidence-ledger.yaml
+    role: immutable_record_of_changes_and_decisions
+storage:
+  current_state_db:
+    stores: [presence, class_membership, support_plan_state, activity_records, consent_scope]
+  semantic_documents:
+    stores: [protocols, policies, guidelines, manuals]
+  evidence_ledger:
+    stores: [observations, landscape_changes, proposals, human_decisions, implementations, outcomes]
+flow:
+  - home_and_child_observation
+  - nursery_observation
+  - external_context_ingestion
+  - privacy_and_authorization_filter
+  - foundation_data_normalization
+  - shared_landscape_formation
+  - relation_and_difference_observation
+  - human_review
+  - childcare_decision
+  - implementation
+  - evidence_recording
+  - guardian_feedback
+  - next_observation
+sns_integration:
+  pattern: [individual_signal, peer_response, child_initiated_activity, propagation_to_group, adult_observation, planning_feedback]
+  treatment: foundation_observation_until_human_interpretation
+privacy:
+  identity_mapping: protected_and_separate
+  guardian_sharing_scope: explicit
+  external_release: anonymized_aggregate_only
+  synthetic_public_examples: required
+prohibitions:
+  - no_automatic_diagnosis
+  - no_automatic_staffing_decision
+  - no_automatic_safety_decision
+  - no_ai_autonomous_childcare_decision
+  - no_identity_reconstruction_from_public_context
+success_condition: 家庭と園の観測が同一のLandscape上で扱われ、判断は人間に残り、結果がEvidenceとして次の観測へ戻る
