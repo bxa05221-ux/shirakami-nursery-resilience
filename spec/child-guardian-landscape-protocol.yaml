@@ -1,0 +1,69 @@
+version: 0.1.0-alpha1
+title: Child & Guardian Landscape Protocol
+purpose: 子どもと保護者を起点に、家庭と園の基礎情報を安全に接続する
+principles:
+  - child_centered
+  - guardian_participation
+  - foundation_data_before_judgment
+  - two_way_context
+  - minimum_necessary_sharing
+  - human_decision_required
+participants:
+  child:
+    role: voice_choice_interest_and_daily_experience
+  guardian:
+    role: home_observation_context_consent_and_dialogue
+  nursery:
+    role: childcare_observation_planning_and_feedback
+  ai_runtime:
+    role: organize_context_surface_differences_and_prepare_proposals
+    prohibition: no_autonomous_childcare_decision
+home_inputs:
+  - daily_condition
+  - sleep_and_meal_context
+  - interest_and_preference
+  - child_expression
+  - family_observation
+  - concerns
+  - questions
+nursery_inputs:
+  - attendance_presence
+  - development_observation
+  - activity_observation
+  - peer_interaction
+  - support_history
+  - individual_support_plan
+  - staffing_context
+  - environmental_context
+shared_landscape:
+  child: [interest, expression, activity, change]
+  family: [home_observation, questions, agreed_context]
+  nursery: [observation, activity, support_context]
+  external: [weather, warnings, local_information]
+flow:
+  - collect_foundation_information
+  - apply_privacy_boundary
+  - contextualize_home_and_nursery_observations
+  - identify_observation_differences_without_judgment
+  - present_to_authorized_humans
+  - human_dialogue_and_decision
+  - record_relevant_evidence
+  - feed_back_to_next_observation
+privacy:
+  identity_mapping: protected
+  guardian_controls: explicit_consent_and_sharing_scope
+  child_level_external_release: prohibited_by_default
+  public_examples: synthetic_only
+outputs:
+  guardian_view:
+    - child_daily_landscape
+    - nursery_feedback
+    - upcoming_context
+    - shared_questions
+  nursery_view:
+    - family_context
+    - child_landscape
+    - observation_difference
+    - follow_up_candidates
+  evaluation_view:
+    - anonymized_aggregate_evidence_only
