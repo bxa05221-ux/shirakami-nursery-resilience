@@ -1,0 +1,166 @@
+protocol:
+  id: shirakami-education-api
+  version: "0.1"
+  status: experimental
+  title: 白神保育教育API v0.1
+  purpose: "養成校・実習・就職後を、保育計画・実践・報告・問いで接続する"
+  principle: "人を評価するAPIではなく、経験と問いを接続するAPI"
+
+architecture:
+  boundary:
+    browser: presentation_only
+    http_api: protocol_boundary
+    runtime: shirakami_core
+    domain_knowledge: childcare_education
+  vendor_independence: required
+
+lifecycle:
+  stages:
+    - pre_service
+    - practicum
+    - novice
+    - practitioner
+    - mentor
+  continuity:
+    - school_to_practicum
+    - practicum_to_workplace
+    - workplace_to_school
+
+cycle:
+  - plan
+  - practice
+  - observe
+  - report
+  - reflect
+  - question
+  - replan
+
+plan:
+  required:
+    - date
+    - class
+    - activities
+    - goals
+  goal_rule:
+    goals_are_source_for_final_checklist: true
+    checklist_generated_before_practice: false
+    checklist_generated_at_report: true
+  human_approval_required: true
+
+report:
+  checklist:
+    source: approved_plan.goals
+    timing: after_practice
+    statuses:
+      - achieved
+      - partial
+      - not_achieved
+      - not_observed
+  reflection:
+    question_for_partial_or_not_achieved: true
+    blame_language: prohibited
+  original_record:
+    preserve: true
+    rewrite: false
+
+question_engine:
+  inputs:
+    - plan
+    - practice_report
+    - observation
+    - context_change
+  outputs:
+    - reflection_question
+    - unresolved_question
+    - next_observation_point
+  decision_authority: human
+
+ai:
+  allowed:
+    - extract_goals
+    - generate_report_checklist
+    - organize_observations
+    - detect_plan_practice_difference
+    - generate_reflection_questions
+    - summarize_learning
+    - suggest_next_observation
+  prohibited:
+    - student_grading
+    - pass_fail_decision
+    - autonomous_practicum_evaluation
+    - diagnosis
+    - autonomous_childcare_decision
+    - autonomous_safety_decision
+
+roles:
+  student:
+    can:
+      - create_plan
+      - submit_report
+      - answer_questions
+  practicum_supervisor:
+    can:
+      - review_plan
+      - review_report
+      - add_observation
+      - approve_learning_record
+  school_teacher:
+    can:
+      - review_student_learning
+      - compare_learning_patterns
+      - add_questions
+  workplace_mentor:
+    can:
+      - review_continuity_record
+      - add_practice_context
+  ai:
+    authority: none
+
+privacy:
+  data_minimization: required
+  student_identifiers: separated_from_learning_content
+  child_identifiers: not_required_for_education_api
+  cross_institution_sharing: explicit_consent_required
+  repository_identifiable_data: false
+
+http:
+  base_path: /api/v1/education
+  content_type: application/json
+  endpoints:
+    - method: POST
+      path: /plans
+      purpose: create_plan
+    - method: GET
+      path: /plans/{planId}
+      purpose: get_plan
+    - method: POST
+      path: /practice
+      purpose: record_practice
+    - method: POST
+      path: /reports
+      purpose: generate_and_submit_report
+    - method: GET
+      path: /reports/{reportId}
+      purpose: get_report
+    - method: GET
+      path: /reflection/{reportId}
+      purpose: get_reflection_questions
+    - method: POST
+      path: /reflection/{reportId}/answers
+      purpose: record_reflection
+    - method: GET
+      path: /continuity/{studentId}
+      purpose: get_learning_continuity
+
+outputs:
+  - final_report_checklist
+  - reflection_questions
+  - learning_record
+  - unresolved_questions
+  - next_observation_points
+
+safety:
+  human_authority: required
+  auditability: required
+  append_only_evidence: preferred
+  high_risk_childcare_decisions: outside_api_authority
