@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: Shirakami Education API
+  version: 0.1.0
+  description: |
+    養成校・実習・就職後を、保育計画・実践・報告・問いで接続する教育API。
+    AIは学生を評価せず、計画から報告チェックリストを生成し、差分と問いを整理する。
+servers:
+  - url: /api/v1/education
+    description: Deployment-relative API base path
+tags:
+  - name: Plans
+  - name: Practice
+  - name: Reports
+  - name: Reflection
+  - name: Continuity
+paths:
+  /plans:
+    post:
+      tags: [Plans]
+      summary: 保育計画を登録
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Plan' }
+      responses:
+        '201':
+          description: Plan created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanReceipt' }
+  /plans/{planId}:
+    get:
+      tags: [Plans]
+      summary: 保育計画を取得
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '200':
+          description: Plan
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Plan' }
+  /practice:
+    post:
+      tags: [Practice]
+      summary: 実践記録を登録
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Practice' }
+      responses:
+        '201': { description: Practice recorded }
+  /reports:
+    post:
+      tags: [Reports]
+      summary: 実践報告を登録し、計画目標から最終チェックリストを生成
+      description: |
+        チェックリストは実践中には要求せず、報告時に承認済み計画のgoalから派生する。
+        AIはチェック結果を決定せず、本人または指導者が入力する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportInput' }
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Report' }
+  /reports/{reportId}:
+    get:
+      tags: [Reports]
+      summary: 実践報告を取得
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Report' }
+  /reflection/{reportId}:
+    get:
+      tags: [Reflection]
+      summary: 振り返りの問いを取得
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Reflection questions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Reflection' }
+  /reflection/{reportId}/answers:
+    post:
+      tags: [Reflection]
+      summary: 振り返りを記録
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReflectionAnswer' }
+      responses:
+        '201': { description: Reflection recorded }
+  /continuity/{studentId}:
+    get:
+      tags: [Continuity]
+      summary: 学習継承Landscapeを取得
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Continuity landscape
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Continuity' }
+components:
+  parameters:
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema: { type: string }
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    Plan:
+      type: object
+      required: [studentId, date, class, activities, goals]
+      properties:
+        studentId: { type: string }
+        date: { type: string, format: date }
+        class: { type: string }
+        activities: { type: array, items: { type: string } }
+        participants: { type: array, items: { type: string } }
+        roles: { type: array, items: { type: string } }
+        emergencyContact: { type: string }
+        stopCriteria: { type: array, items: { type: string } }
+        goals: { type: array, items: { type: string }, minItems: 1 }
+        status: { type: string, enum: [draft, approved] }
+    PlanReceipt:
+      type: object
+      required: [planId, status]
+      properties:
+        planId: { type: string }
+        status: { type: string, enum: [draft, approved] }
+        humanApprovalRequired: { type: boolean, const: true }
+    Practice:
+      type: object
+      required: [planId, occurredAt, events]
+      properties:
+        planId: { type: string }
+        occurredAt: { type: string, format: date-time }
+        events: { type: array, items: { type: string } }
+        roleChanges: { type: array, items: { type: string } }
+        interruptions: { type: array, items: { type: string } }
+        notes: { type: string }
+    ReportInput:
+      type: object
+      required: [planId, practiceId, goalResults]
+      properties:
+        planId: { type: string }
+        practiceId: { type: string }
+        goalResults:
+          type: array
+          items: { $ref: '#/components/schemas/GoalResult' }
+        notes: { type: string }
+    GoalResult:
+      type: object
+      required: [goal, status]
+      properties:
+        goal: { type: string }
+        status: { type: string, enum: [achieved, partial, not_achieved, not_observed] }
+        evidence: { type: string }
+    Report:
+      type: object
+      required: [reportId, planId, checklist, humanReviewRequired]
+      properties:
+        reportId: { type: string }
+        planId: { type: string }
+        checklist: { type: array, items: { $ref: '#/components/schemas/GoalResult' } }
+        questions: { type: array, items: { type: string } }
+        humanReviewRequired: { type: boolean, const: true }
+    Reflection:
+      type: object
+      properties:
+        reportId: { type: string }
+        questions: { type: array, items: { type: string } }
+    ReflectionAnswer:
+      type: object
+      required: [answers]
+      properties:
+        answers: { type: array, items: { type: string } }
+    Continuity:
+      type: object
+      properties:
+        studentId: { type: string }
+        stage: { type: string, enum: [pre_service, practicum, novice, practitioner, mentor] }
+        learningRecords: { type: array, items: { type: object } }
+        unresolvedQuestions: { type: array, items: { type: string } }
+        humanReviewRequired: { type: boolean, const: true }
