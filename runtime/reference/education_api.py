@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """Dependency-free reference server for Shirakami Education API v0.1.
 
-This is a prototype, not a production childcare system. Data is in-memory.
-The implementation demonstrates the protocol boundary and the key rule:
-report-time checklists are derived from approved plan goals.
+Prototype only: data is in-memory. Run from repository root:
+    python runtime/reference/education_api.py
+Then open http://localhost:8000/education.html
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import uuid
+from pathlib import Path
 from urllib.parse import urlparse
 
 PLANS = {}
 PRACTICE = {}
 REPORTS = {}
 REFLECTIONS = {}
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def new_id(prefix):
@@ -32,32 +34,31 @@ def send_json(handler, status, payload):
 class Handler(BaseHTTPRequestHandler):
     def read_json(self):
         length = int(self.headers.get("Content-Length", "0"))
-        if length == 0:
-            return {}
-        return json.loads(self.rfile.read(length))
+        return json.loads(self.rfile.read(length)) if length else {}
 
     def do_GET(self):
         path = urlparse(self.path).path
         parts = [p for p in path.split("/") if p]
 
+        if path in ("/", "/education.html"):
+            html = (ROOT / "web" / "education.html").read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html)))
+            self.end_headers()
+            self.wfile.write(html)
+            return
+
         if parts == ["health"]:
             return send_json(self, 200, {"status": "ok", "service": "shirakami-education-api", "version": "0.1"})
 
-        if len(parts) == 4 and parts[:3] == ["api", "v1", "education"] and parts[3] == "openapi":
-            return send_json(self, 200, {"message": "Use api/education-openapi.yaml from the repository."})
-
         if len(parts) == 5 and parts[:3] == ["api", "v1", "education"]:
             resource, ident = parts[3], parts[4]
-            stores = {"plans": PLANS, "reports": REPORTS}
+            stores = {"plans": PLANS, "reports": REPORTS, "reflection": REFLECTIONS}
             if resource in stores and ident in stores[resource]:
                 return send_json(self, 200, stores[resource][ident])
-            if resource == "reflection" and ident in REFLECTIONS:
-                return send_json(self, 200, REFLECTIONS[ident])
 
-        if len(parts) == 6 and parts[:3] == ["api", "v1", "education"] and parts[3] == "reflection" and parts[5] == "answers":
-            return send_json(self, 200, REFLECTIONS.get(parts[4], {"reportId": parts[4], "questions": []}))
-
-        if len(parts) == 6 and parts[:3] == ["api", "v1", "education"] and parts[3] == "continuity":
+        if len(parts) == 5 and parts[:3] == ["api", "v1", "education"] and parts[3] == "continuity":
             student_id = parts[4]
             records = [r for r in REPORTS.values() if r.get("studentId") == student_id]
             return send_json(self, 200, {
@@ -79,7 +80,8 @@ class Handler(BaseHTTPRequestHandler):
             return send_json(self, 400, {"error": "invalid_json"})
 
         if parts == ["api", "v1", "education", "plans"]:
-            if not data.get("studentId") or not data.get("date") or not data.get("class") or not data.get("goals"):
+            required = ("studentId", "date", "class", "goals")
+            if any(not data.get(k) for k in required):
                 return send_json(self, 400, {"error": "studentId, date, class and goals are required"})
             plan_id = new_id("plan")
             plan = {**data, "planId": plan_id, "status": data.get("status", "draft")}
@@ -101,8 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             if plan.get("status") != "approved":
                 return send_json(self, 409, {"error": "plan_must_be_approved_before_report"})
             results_by_goal = {r.get("goal"): r for r in data.get("goalResults", [])}
-            checklist = []
-            questions = []
+            checklist, questions = [], []
             for goal in plan["goals"]:
                 result = results_by_goal.get(goal, {"goal": goal, "status": "not_observed"})
                 checklist.append(result)
@@ -121,7 +122,7 @@ class Handler(BaseHTTPRequestHandler):
             REFLECTIONS[report_id] = {"reportId": report_id, "questions": questions}
             return send_json(self, 201, report)
 
-        if len(parts) == 7 and parts[:3] == ["api", "v1", "education"] and parts[3] == "reflection" and parts[5] == "answers":
+        if len(parts) == 6 and parts[:3] == ["api", "v1", "education"] and parts[3] == "reflection" and parts[5] == "answers":
             report_id = parts[4]
             if report_id not in REPORTS:
                 return send_json(self, 404, {"error": "report_not_found"})
