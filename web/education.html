@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>白神 保育教育API</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;line-height:1.7}
+    section{border:1px solid #ddd;border-radius:12px;padding:20px;margin:16px 0}
+    input,textarea,button{font:inherit;padding:8px;margin:4px 0;box-sizing:border-box;width:100%}
+    button{cursor:pointer;width:auto;padding:8px 18px}
+    .goal{margin:8px 0;padding:10px;background:#f5f5f5;border-radius:8px}
+    .question{padding:12px;border-left:4px solid #888;margin:10px 0}
+    small{color:#666}
+  </style>
+</head>
+<body>
+<h1>白神 保育教育API</h1>
+<p>計画 → 実践 → 報告 → 問い。チェックリストは報告時に計画の目標から生成します。</p>
+<small>Reference UI / prototype. 本番運用では認証・権限・永続DB・監査を追加してください。</small>
+
+<section>
+  <h2>1. 保育計画</h2>
+  <input id="studentId" placeholder="学生ID" value="student-001">
+  <input id="date" type="date">
+  <input id="className" placeholder="クラス" value="3歳児">
+  <textarea id="goals" rows="4" placeholder="目標を1行ずつ">友達との関わりを楽しむ
+戸外で身体を動かす
+自分の思いを言葉で表現する</textarea>
+  <button onclick="createPlan()">計画を登録</button>
+  <pre id="planResult"></pre>
+</section>
+
+<section>
+  <h2>2. 実践</h2>
+  <textarea id="events" rows="4" placeholder="実践中の出来事">子ども同士で遊びを選ぶ場面があった
+雨が強くなり戸外活動を室内に変更した</textarea>
+  <button onclick="createPractice()">実践を記録</button>
+  <pre id="practiceResult"></pre>
+</section>
+
+<section>
+  <h2>3. 最終報告</h2>
+  <p>ここで初めて、計画の目標がチェック項目になります。</p>
+  <div id="checklist"></div>
+  <textarea id="reportNotes" rows="3" placeholder="今日の気づき"></textarea>
+  <button onclick="submitReport()">報告を登録</button>
+  <pre id="reportResult"></pre>
+</section>
+
+<section>
+  <h2>4. 振り返り</h2>
+  <div id="questions"><small>報告後、△/×の項目について問いが表示されます。</small></div>
+</section>
+
+<script>
+let planId=null, practiceId=null, currentGoals=[];
+const base='/api/v1/education';
+const $=id=>document.getElementById(id);
+$('date').value=new Date().toISOString().slice(0,10);
+function show(id,obj){$(id).textContent=JSON.stringify(obj,null,2)}
+async function api(path,method='GET',body=null){
+  const r=await fetch(base+path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const j=await r.json(); if(!r.ok) throw new Error(j.error||r.status); return j;
+}
+async function createPlan(){
+  try{
+    currentGoals=$('goals').value.split('\n').map(x=>x.trim()).filter(Boolean);
+    const j=await api('/plans','POST',{studentId:$('studentId').value,date:$('date').value,class:$('className').value,activities:['日常保育'],goals:currentGoals,status:'approved'});
+    planId=j.planId; show('planResult',j); renderChecklist();
+  }catch(e){show('planResult',{error:e.message})}
+}
+function renderChecklist(){
+  $('checklist').innerHTML=currentGoals.map((g,i)=>`<div class="goal"><b>${i+1}. ${g}</b><br><select id="status${i}"><option value="achieved">○ 達成</option><option value="partial">△ 一部達成</option><option value="not_achieved">× 未達成</option><option value="not_observed">未観察</option></select><br><input id="evidence${i}" placeholder="Evidence / 子どもの姿"></div>`).join('');
+}
+async function createPractice(){
+  if(!planId)return show('practiceResult',{error:'先に計画を登録してください'});
+  try{const j=await api('/practice','POST',{planId,occurredAt:new Date().toISOString(),events:$('events').value.split('\n').filter(Boolean)});practiceId=j.practiceId;show('practiceResult',j)}catch(e){show('practiceResult',{error:e.message})}
+}
+async function submitReport(){
+  if(!planId||!practiceId)return show('reportResult',{error:'計画と実践を先に登録してください'});
+  try{
+    const goalResults=currentGoals.map((goal,i)=>({goal,status:$('status'+i).value,evidence:$('evidence'+i).value}));
+    const j=await api('/reports','POST',{planId,practiceId,goalResults,notes:$('reportNotes').value});
+    show('reportResult',j); $('questions').innerHTML=(j.questions||[]).map(q=>`<div class="question">${q}</div>`).join('')||'<small>今回、追加の問いはありません。</small>';
+  }catch(e){show('reportResult',{error:e.message})}
+}
+</script>
+</body>
+</html>
